@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    as
+
+    <script>
+        var url = 'ws://127.0.0.1:8000/chat/'
+        var socket = new WebSocket(url)
+
+        socket.onopen = (event) => {
+            console.log('open', event)
+            socket.send({'j':'socket'})
+        }
+
+        socket.onmessage = (event) => {
+            console.log('message', event)
+        }
+
+        socket.onerror = (event) => {
+            console.log('error', event)
+        }
+
+        socket.onclose = (event) => {
+            console.log('close', event)
+        }
+
+    </script>
+    
+</body>
+</html>
