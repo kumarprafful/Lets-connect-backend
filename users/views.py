@@ -17,6 +17,6 @@ def fetch_contact_list(request):
         user = request.user
         contacts = Contacts.objects.get(user=request.user)
         serializer = ContactSerializer(contacts)
-        return Response({'status':'success', 'data': serializer.data})
+        return Response({'status':'success', 'data': serializer.data}, status=200)
     except Exception as e:
-        return Response({'status':'error', 'message':str(e)})
+        return Response({'status':'error', 'message':str(e)}, status=400)

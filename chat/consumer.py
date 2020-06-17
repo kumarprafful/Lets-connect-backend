@@ -11,7 +11,8 @@ User = get_user_model()
 class ChatConsumer(AsyncConsumer):
     async def websocket_connect(self, event):
         print('connected', event)
-        self.room = None
+        self.pre_rooms = None
+        self.rooms = set()
         await self.send({
             'type':'websocket.accept'
         })
@@ -19,24 +20,51 @@ class ChatConsumer(AsyncConsumer):
     async def websocket_receive(self, event):
         print('received', event)
         await self.fetch_user_from_token(event)
-        print('--'*100)
-        print(self.scope)
-        contact_id = json.loads(event.get('text')).get('contact')
+        pre_rooms = self.pre_rooms
+        if pre_rooms:
+            for room in pre_rooms:
+                self.rooms.add(f'room_{str(room)}')
+                await self.channel_layer.group_add(
+                    f'room_{str(room)}',
+                    self.channel_name,
+                )
+            self.pre_rooms = None
 
-        if contact_id:
-            self.room = await self.get_room(contact_id)
-            pass
+        message = json.loads(event.get('text')).get('message')
+        if message:
+            msg = await self.create_msg(message.get('roomID'), message.get('msg'))
 
-        if self.room:
-            print("room wala",event)
-            
+            myResponse = {
+                'roomID': str(msg.room.id),
+                'messageObj':{
+                    'sender': str(msg.sender.id),
+                    'message': msg.message,
+                    'created_at': str(msg.created_at),
+                }
+            }
+
+            await self.channel_layer.group_send(
+                f'room_{message.get("roomID")}',
+                {
+                    'type': 'chat_message',
+                    'text': json.dumps(myResponse)
+                }
+            )
+    
+    async def chat_message(self, event):
+        await self.send({
+            'type': 'websocket.send',
+            'text': event['text']
+        })
+
+
     async def websocket_disconnect(self, event):
         print('disconnected', event)
 
     @database_sync_to_async
     def fetch_user_from_token(self, event):
         if self.scope['user'].id:
-            pass
+            return
         else:
             try:
                 # It means user is not authenticated yet.
@@ -45,24 +73,22 @@ class ChatConsumer(AsyncConsumer):
                     token = data['authorization']
                     token = Token.objects.get(key=token)
                     self.scope['user'] = token.user
+                    self.pre_rooms = token.user.get_rooms()
                     return
                     
             except Exception as e:
                 # Data is not valid, so close it.
-                print(e)
+                print('EXCEPTION ====> ',e)
                 pass
 
+
     @database_sync_to_async
-    def get_room(self, contact_id):
-        print('contact_id', contact_id)
-        contact = User.objects.get(id=contact_id)
-        print('---'*50)
-        print('contact obj',contact)
-        room, created = Room.objects.get_or_new(
-            first_user=self.scope.get('user'),
-            second_user=contact
+    def create_msg(self, room_id, message):
+        room = Room.objects.get(id=room_id)
+        return Message.objects.create(
+            room=room,
+            message=message,
+            sender=self.scope.get('user'),
         )
-        print(room, created)
-        return room
 
-
+    

@@ -66,6 +66,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         super(User, self).save(*args, **kwargs)
 
 
+    def get_rooms(self):
+        from chat.models import Room
+        return list(Room.objects.by_user(user=self).values_list('id', flat=True))
+
+    def last_message(self, other_user):
+        try:
+            from chat.models import Room
+            room, _ =  Room.objects.get_or_new(first_user=self, second_user=other_user)
+            return room.get_last_message()
+        except:
+            return None
+        
 class Contacts(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='contact_list')

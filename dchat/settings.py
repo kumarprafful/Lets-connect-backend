@@ -133,7 +133,7 @@ STATIC_URL = '/static/'
 AUTH_USER_MODEL = 'users.User'
 
 
-CHANNELS_LAYERS = {
+CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
@@ -153,7 +153,7 @@ PASSWORDLESS_AUTH = {
     'PASSWORDLESS_EMAIL_NOREPLY_ADDRESS': 'kumarprafful54@gmail.com',
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'kumarprafful54@gmail.com'

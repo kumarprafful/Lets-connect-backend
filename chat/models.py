@@ -16,6 +16,12 @@ class TimeStampedMixin(models.Model):
         abstract = True
 
 class RoomManager(models.Manager):
+    def by_user(self, user):
+        qlookup = Q(first_user=user) | Q(second_user=user)
+        qlookup2 = Q(first_user=user) & Q(second_user=user)
+        qs = self.get_queryset().filter(qlookup).exclude(qlookup2).distinct()
+        return qs
+
     def get_or_new(self, first_user, second_user):
         first_user_id = first_user.id
         second_user_id = second_user.id
@@ -48,12 +54,18 @@ class Room(TimeStampedMixin):
     class Meta:
         unique_together = ['first_user', 'second_user']
 
+    @property
+    def get_initial_messages(self):
+        return Message.objects.filter(room=self).order_by('-created_at')[:10]
+
+    def get_last_message(self):
+        return Message.objects.filter(room=self).latest('created_at')
 
 class Message(TimeStampedMixin):
     room = models.ForeignKey(Room, blank=True, null=True, on_delete=models.SET_NULL)
-    user = models.ForeignKey(User, verbose_name='sender', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, verbose_name='sender', on_delete=models.CASCADE)
     message = models.TextField()
 
     def __str__(self):
-        return f'{room.id} - {user.email}'
+        return f'{self.room.id} - {self.sender.email}'
 
