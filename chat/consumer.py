@@ -84,6 +84,7 @@ class ChatConsumer(AsyncConsumer):
 
     @database_sync_to_async
     def create_msg(self, room_id, message):
+        print(self.scope.get('user'))
         room = Room.objects.get(id=room_id)
         return Message.objects.create(
             room=room,

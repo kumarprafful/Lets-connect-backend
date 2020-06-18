@@ -151,6 +151,7 @@ REST_FRAMEWORK = {
 PASSWORDLESS_AUTH = {
     'PASSWORDLESS_AUTH_TYPES': ['EMAIL',],
     'PASSWORDLESS_EMAIL_NOREPLY_ADDRESS': 'kumarprafful54@gmail.com',
+    'PASSWORDLESS_AUTH_TOKEN_SERIALIZER': 'users.serializers.TokenResponseSerializer'
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

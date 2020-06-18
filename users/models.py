@@ -70,6 +70,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         from chat.models import Room
         return list(Room.objects.by_user(user=self).values_list('id', flat=True))
 
+    def get_room_id(self, other_user):
+        from chat.models import Room
+        room, _ =  Room.objects.get_or_new(first_user=self, second_user=other_user)
+        return room.id
+
     def last_message(self, other_user):
         try:
             from chat.models import Room
