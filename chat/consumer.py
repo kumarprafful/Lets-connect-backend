@@ -23,6 +23,7 @@ class ChatConsumer(AsyncConsumer):
         pre_rooms = self.pre_rooms
         if pre_rooms:
             for room in pre_rooms:
+                print('Room',room)
                 self.rooms.add(f'room_{str(room)}')
                 await self.channel_layer.group_add(
                     f'room_{str(room)}',
@@ -50,6 +51,7 @@ class ChatConsumer(AsyncConsumer):
                     'text': json.dumps(myResponse)
                 }
             )
+
     
     async def chat_message(self, event):
         await self.send({
@@ -60,6 +62,7 @@ class ChatConsumer(AsyncConsumer):
 
     async def websocket_disconnect(self, event):
         print('disconnected', event)
+
 
     @database_sync_to_async
     def fetch_user_from_token(self, event):
@@ -91,5 +94,3 @@ class ChatConsumer(AsyncConsumer):
             message=message,
             sender=self.scope.get('user'),
         )
-
-    

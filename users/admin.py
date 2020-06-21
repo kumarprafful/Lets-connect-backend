@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from users.models import Contacts
+from users.models import Contacts, Invites
 
 User = get_user_model()
 
@@ -25,3 +25,4 @@ class UserAdmin(DjangoUserAdmin):
     ordering = ('-date_joined',)
 
 admin.site.register(Contacts)
+admin.site.register(Invites)

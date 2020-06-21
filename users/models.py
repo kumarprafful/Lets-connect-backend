@@ -8,6 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
+from core.models import TimeStampedMixin
 
 class UserManager(BaseUserManager):
     def _create_user(self, email, password, **kwargs):
@@ -62,12 +63,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         return "{} {}".format(self.first_name or '', self.last_name or '')
 
     def save(self, *args, **kwargs):
-        Contacts.objects.get_or_create(user=self)
         super(User, self).save(*args, **kwargs)
+        Contacts.objects.get_or_create(user=self)
 
 
     def get_rooms(self):
         from chat.models import Room
+        print(Room.objects.by_user(user=self))
         return list(Room.objects.by_user(user=self).values_list('id', flat=True))
 
     def get_room_id(self, other_user):
@@ -83,7 +85,21 @@ class User(AbstractBaseUser, PermissionsMixin):
         except:
             return None
         
-class Contacts(models.Model):
+class Contacts(TimeStampedMixin):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user')
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='contact_list')
 
+
+class Invites(TimeStampedMixin):
+    invited_by = models.ForeignKey(User, related_name='invited_by', on_delete=models.DO_NOTHING)
+    invited_user = models.ForeignKey(User, related_name='invited_user', blank=True, null=True, on_delete=models.CASCADE)
+    invited_email = models.EmailField(max_length=255, blank=True, null=True)
+    active = models.BooleanField(default=True)
+    accepted = models.BooleanField(default=False)
+    declined = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = (
+            ('invited_by', 'invited_user'),
+            ('invited_by', 'invited_email'),
+        )

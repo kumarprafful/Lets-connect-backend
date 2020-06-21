@@ -1,9 +1,9 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from users.models import Contacts
 from chat.serializers import MessageSerializer
+from users.models import Contacts, Invites
 
 User = get_user_model()
 
@@ -17,7 +17,6 @@ class ContactUserSerializer(serializers.ModelSerializer):
 
     def get_last_message(self, obj):
         user = self.context.get('user')
-        print('obj', obj, user)
         return MessageSerializer(obj.last_message(other_user=user)).data
 
     def get_room_id(self, obj):
@@ -47,6 +46,13 @@ class TokenResponseSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField()
     class Meta:
         model = User
+        fields = '__all__'
+
+class InvitesSerializer(serializers.ModelSerializer):
+    invited_by = UserSerializer()
+    class Meta:
+        model = Invites
         fields = '__all__'

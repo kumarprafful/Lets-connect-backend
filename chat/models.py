@@ -4,22 +4,16 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 
+from core.models import TimeStampedMixin
 
 User = get_user_model()
 
-class TimeStampedMixin(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, default=uuid.uuid4)
-    created_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
 
 class RoomManager(models.Manager):
     def by_user(self, user):
         qlookup = Q(first_user=user) | Q(second_user=user)
         qlookup2 = Q(first_user=user) & Q(second_user=user)
-        qs = self.get_queryset().filter(qlookup).exclude(qlookup2).distinct()
+        qs = self.get_queryset().filter(qlookup).distinct()
         return qs
 
     def get_or_new(self, first_user, second_user):
